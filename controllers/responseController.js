@@ -2,12 +2,12 @@ const {pool} = require('../db');
 
 exports.submitSurvey = async (req, res) => {
     try {
-        const { nom, prenom, adresse, telephone,poste_precision, poste, experiences } = req.body;
+        const { nom, prenom, adresse, telephone, poste_precision, poste, experiences } = req.body;
 
-        // 1. Insérer le profil
+        // 1. Insérer le profil (CORRECTION : On ajoute $6 pour la 6ème colonne)
         const userRes = await pool.query(
-            'INSERT INTO "Responses" (nom, prenom, adresse, telephone, poste_precision,poste) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-            [nom, prenom, adresse, telephone,poste_precision, poste]
+            'INSERT INTO "Responses" (nom, prenom, adresse, telephone, poste_precision, poste) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+            [nom, prenom, adresse, telephone, poste_precision, poste]
         );
         const responseId = userRes.rows[0].id;
 
@@ -23,7 +23,7 @@ exports.submitSurvey = async (req, res) => {
 
         res.status(201).json({ message: "Formulaire enregistré avec succès !" });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erreur lors de l'enregistrement" });
+        console.error("Erreur SQL détaillée:", err.message);
+        res.status(500).json({ error: "Erreur lors de l'enregistrement : " + err.message });
     }
 };
