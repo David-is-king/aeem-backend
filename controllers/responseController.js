@@ -1,15 +1,13 @@
 const {pool} = require('../db');
-// const Responses = require('../models/Responses');
-// const Experiences = require('../models/Experiences');
 
 exports.submitSurvey = async (req, res) => {
     try {
-        const { nom, prenom, adresse, telephone, poste, experiences } = req.body;
+        const { nom, prenom, adresse, telephone,poste_precision, poste, experiences } = req.body;
 
         // 1. Insérer le profil
         const userRes = await pool.query(
-            'INSERT INTO "Responses" (nom, prenom, adresse, telephone, poste) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-            [nom, prenom, adresse, telephone, poste]
+            'INSERT INTO "Responses" (nom, prenom, adresse, telephone, poste_precision,poste) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+            [nom, prenom, adresse, telephone,poste_precision, poste]
         );
         const responseId = userRes.rows[0].id;
 
