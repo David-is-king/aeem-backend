@@ -2,21 +2,33 @@ const { pool } = require('../db');
 
 exports.submitSurvey = async (req, res) => {
     try {
-        const { nom, prenom, adresse, telephone, poste_precision, poste, experiences } = req.body;
+        // 1. On récupère les données
+        const { nom, prenom, adresse, telephone, poste, poste_precision, experiences } = req.body;
 
-        // On utilise des doubles guillemets pour CHAQUE nom de colonne.
-        // Cela force PostgreSQL à chercher exactement le nom tel qu'il est écrit dans Supabase.
-        const userRes = await pool.query(
-            'INSERT INTO "Responses" ("nom", "prenom", "adresse", "telephone", "poste_precision", "poste") VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-            [nom, prenom, adresse, telephone, poste_precision, poste]
-        );
+        // 2. Requête ultra-sécurisée avec guillemets doubles pour CHAQUE champ
+        // On s'assure que l'ordre des $1..$6 correspond exactement au tableau final
+        const queryText = `
+            INSERT INTO "Responses" 
+            ("nom", "prenom", "adresse", "telephone", "poste", "poste_precision") 
+            VALUES ($1, $2, $3, $4, $5, $6) 
+            RETURNING id
+        `;
         
+        const values = [
+            nom || null, 
+            prenom || null, 
+            adresse || null, 
+            telephone || null, 
+            poste || null, 
+            poste_precision || null
+        ];
+
+        const userRes = await pool.query(queryText, values);
         const responseId = userRes.rows[0].id;
 
-        // 2. Insérer les expériences (si présentes)
+        // 3. Insertion des expériences
         if (experiences && experiences.length > 0) {
             for (let exp of experiences) {
-                // On applique la même sécurité sur la table Experiences
                 await pool.query(
                     'INSERT INTO "Experiences" ("response_id", "annee", "etablissement", "poste") VALUES ($1, $2, $3, $4)',
                     [responseId, exp.annee, exp.etablissement, exp.poste]
@@ -24,10 +36,10 @@ exports.submitSurvey = async (req, res) => {
             }
         }
 
-        res.status(201).json({ message: "Formulaire enregistré avec succès !" });
+        res.status(201).json({ message: "Succès !" });
     } catch (err) {
-        console.error("Erreur SQL détaillée:", err.message);
-        // On renvoie l'erreur brute pour voir exactement ce que dit la base de données
-        res.status(500).json({ error: "Erreur BDD : " + err.message });
+        // CRITIQUE : Ceci va afficher la VRAIE raison dans le toast (ex: table manquante, etc.)
+        console.error("DEBUG BACKEND:", err);
+        res.status(500).json({ error: "Détail : " + err.message });
     }
 };
