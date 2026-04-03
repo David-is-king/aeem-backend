@@ -43,3 +43,26 @@ exports.submitSurvey = async (req, res) => {
         res.status(500).json({ error: "Erreur : " + err.message });
     }
 };
+
+exports.getResponses = async (req, res) => {
+    try {
+        // Récupère toutes les réponses triées par date
+        const responsesResult = await pool.query('SELECT * FROM "Responses" ORDER BY created_at DESC');
+        const responses = responsesResult.rows;
+
+        // Récupère toutes les expériences
+        const expsResult = await pool.query('SELECT * FROM "Experiences"');
+        const allExperiences = expsResult.rows;
+
+        // Fusionne les expériences dans leurs réponses respectives
+        const data = responses.map(resp => ({
+            ...resp,
+            experiences: allExperiences.filter(exp => exp.response_id === resp.id)
+        }));
+
+        res.json(data);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erreur lors de la récupération des données" });
+    }
+};
