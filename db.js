@@ -2,30 +2,21 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'aeemDB',
-  password: process.env.DB_PASSWORD || 'Admin',
-  port: process.env.DB_PORT || 5433,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-// const pool = new Pool({
-//   user: process.env.DB_USER || 'postgres',
-//   host: process.env.DB_HOST || 'localhost',
-//   database: process.env.DB_NAME || 'aeemDB',
-//   password: process.env.DB_PASSWORD || 'root',
-//   port: process.env.DB_PORT || 5433,
-// });
-
-// Vérification de la connexion au démarrage
+// Test de connexion
 const connectDB = async () => {
   try {
-    const client = await pool.connect(); 
-    console.log('✅ Connecté à PostgreSQL sur le port', process.env.DB_PORT || 5433);
-    client.release(); // On libère le client immédiatement
+    const client = await pool.connect();
+    console.log('✅ Connecté à Supabase PostgreSQL');
+    client.release();
   } catch (err) {
     console.error('❌ Erreur de connexion PostgreSQL :', err.message);
-    process.exit(1); // Arrête le serveur si la DB n'est pas là
+    process.exit(1);
   }
 };
 
