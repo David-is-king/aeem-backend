@@ -27,6 +27,11 @@ exports.submitSurvey = async (req, res) => {
 
         // 2. Insertion dans la table Experiences
         if (experiences && experiences.length > 0) {
+            // Supprimer les doublons potentiels envoyés dans le JSON
+            const uniqueYears = [...new Set(experiences.map(e => e.annee))];
+            if (uniqueYears.length !== experiences.length) {
+                return res.status(400).json({ error: "Doublons d'années détectés." });
+            }
             for (let exp of experiences) {
                 await pool.query(
                     'INSERT INTO "Experiences" ("response_id", "annee", "etablissement", "poste") VALUES ($1, $2, $3, $4)',
