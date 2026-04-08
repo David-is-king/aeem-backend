@@ -33,13 +33,28 @@ exports.submitSurvey = async (req, res) => {
                 return res.status(400).json({ error: "Doublons d'années détectés." });
             }
             for (let exp of experiences) {
-                await pool.query(
-                    'INSERT INTO "Experiences" ("response_id", "annee", "etablissement", "poste") VALUES ($1, $2, $3, $4)',
-                    [responseId, exp.annee, exp.etablissement, exp.poste]
-                );
-            }
-        }
+        //         await pool.query(
+        //             'INSERT INTO "Experiences" ("response_id", "annee", "etablissement", "poste","poste2","poste_precision2") VALUES ($1, $2, $3, $4, $5, $6)',
+        //             [responseId, exp.annee, exp.etablissement, exp.poste, exp.poste2 || null, exp.poste_precision2 || null]
+        //         );
+        //     }
+        // }
 
+        await pool.query(
+    `INSERT INTO "Experiences" 
+    ("response_id", "annee", "etablissement", "poste", "poste_precision", "poste2", "poste_precision2") 
+    VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+        responseId,
+        exp.annee,
+        exp.etablissement,
+        exp.poste,
+        exp.poste_precision,   // ✅ AJOUT
+        exp.poste2 || null,
+        exp.poste_precision2 || null
+    ]
+);
+    }}
         res.status(201).json({ message: "Enregistrement réussi !" });
 
     } catch (err) {
